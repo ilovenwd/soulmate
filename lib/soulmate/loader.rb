@@ -36,7 +36,8 @@ module Soulmate
       Soulmate.redis.pipelined do
         # store the raw data in a separate key to reduce memory usage
         Soulmate.redis.hset(database, item["id"], MultiJson.encode(item))
-        phrase = ([item["term"]] + (item["aliases"] || [])).join(' ')
+        items = [item["term"]] + (item["aliases"] || [])
+        phrase = items.join(' ')
         prefixes_for_phrase(phrase).each do |p|
           Soulmate.redis.sadd(base, p) # remember this prefix in a master set
           Soulmate.redis.zadd("#{base}:#{p}", item["score"], item["id"]) # store the id of this term in the index

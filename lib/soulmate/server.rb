@@ -23,11 +23,20 @@ module Soulmate
       limit = (params[:limit] || 5).to_i
       types = params[:types].map { |t| normalize(t) }
       term  = params[:term]
+      filter = params[:filter]
       
       results = {}
       types.each do |type|
         matcher = Matcher.new(type)
-        results[type] = matcher.matches_for_term(term, :limit => limit)
+        r = matcher.matches_for_term(term, :limit => limit)
+        if !filter.blank?
+          filter.each do |key,value|
+            r.reject! do |x|
+              x['data'][key] != value
+            end
+          end
+        end
+        results[type] = r
       end
       
       MultiJson.encode({
